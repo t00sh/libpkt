@@ -4,10 +4,18 @@
 #define ETHER_ALEN	6		/* Octets in one ethernet addr	 */
 #define ETHER_HLEN	14		/* Total octets in header.	 */
 
+#define ETHER_ADDR_STR_LEN 18
+
+#include "types.h"
+
+typedef struct etheraddr {
+  u8 bytes[ETHER_ALEN];
+}__attribute__((__packed__)) etheraddr_t;
+
 /* 10Mb/s ethernet header */
 typedef struct ether_hdr {
-  u8  dst[ETHER_ALEN];	/* destination eth addr	*/
-  u8  src[ETHER_ALEN];	/* source ether addr	*/
+  etheraddr_t  dst;	/* destination eth addr	*/
+  etheraddr_t  src;	/* source ether addr	*/
   u16 type;	        /* packet type ID field	*/
 } __attribute__ ((__packed__)) ether_hdr;
 
@@ -30,6 +38,8 @@ typedef struct ether_hdr {
 #define	ETHER_IS_VALID_LEN(foo)	\
   ((foo) >= ETHER_HLEN)
 
-void ether_parse(packet_t **pkt, u8 *data, u32 size);
+int ether_get_type(layer_t *l, u16 *type);
+int ether_get_srcStr(layer_t *l, char addr[ETHER_ADDR_STR_LEN]);
+int ether_get_dstStr(layer_t *l, char addr[ETHER_ADDR_STR_LEN]);
 
 #endif /* DEF_ETHER_H */
