@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "packet.h"
+#include "icmp.h"
 #include "udp.h"
 #include "tcp.h"
 #include "ipv4.h"

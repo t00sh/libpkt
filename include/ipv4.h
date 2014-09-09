@@ -43,6 +43,9 @@ typedef struct ipv4_hdr {
 #define IPV4_HAVE_OPTIONS(h) (IPV4_HLEN(h) > IPV4_MIN_HLEN)
 
 
+#ifndef IPPROTO_ICMP
+#define IPPROTO_ICMP 1
+#endif
 #ifndef IPPROTO_TCP
 #define IPPROTO_TCP 6
 #endif

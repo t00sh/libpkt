@@ -25,6 +25,14 @@ int ipv4_is_udp(layer_t *l) {
   return 0;
 }
 
+int ipv4_is_icmp(layer_t *l) {
+  ipv4_hdr *ipv4 = l->object;
+
+  if(ipv4->protocol == IPPROTO_ICMP)
+    return 1;
+  return 0;
+}
+
 int ipv4_parse(layer_t **layer, u8 *data, u32 size) {
   ipv4_hdr *ipv4;
 

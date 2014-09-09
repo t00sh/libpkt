@@ -8,6 +8,7 @@ enum {
   LAYER_IPV4,
   LAYER_TCP,
   LAYER_UDP,
+  LAYER_ICMP,
   LAYER_MAX
 };
 
