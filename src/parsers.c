@@ -7,6 +7,7 @@ int ipv4_parse(layer_t **layer, u8 *data, u32 size);
 int tcp_parse(layer_t **layer, u8 *data, u32 size);
 int udp_parse(layer_t **layer, u8 *data, u32 size);
 int icmp_parse(layer_t **layer, u8 *data, u32 size);
+int arp_parse(layer_t **layer, u8 *data, u32 size);
 
 int (*layer_parsers[])(layer_t**, u8*, u32) = {
   ether_parse,    /* LAYER_ETHER  */
@@ -14,6 +15,7 @@ int (*layer_parsers[])(layer_t**, u8*, u32) = {
   tcp_parse,      /* LAYER_TCP    */
   udp_parse,      /* LAYER_UDP    */
   icmp_parse,     /* LAYER_ICMP   */
+  arp_parse,      /* LAYER_ARP    */
   NULL            /* LAYER_MAX    */
 };
 
@@ -25,9 +27,11 @@ int (*layer_parsers[])(layer_t**, u8*, u32) = {
 
 int ether_is_ipv4(layer_t*);
 int ether_is_ipv6(layer_t*);
+int ether_is_arp(layer_t*);
 
 dissector_t ether_dissectors[] = {
   { ether_is_ipv4, ipv4_parse },
+  { ether_is_arp, arp_parse },
   { NULL,          NULL       }
 };
 

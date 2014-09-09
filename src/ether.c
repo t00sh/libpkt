@@ -29,6 +29,15 @@ int ether_is_ipv6(layer_t *l) {
   return 0;
 }
 
+int ether_is_arp(layer_t *l) {
+  ether_hdr *hdr = l->object;
+
+  if(ntohs(hdr->type) == ETHERTYPE_ARP)
+    return 1;
+
+  return 0;
+}
+
 /* TODO: better error handling (not just return 0) */
 int ether_parse(layer_t **layer, u8 *data, u32 size) {
 

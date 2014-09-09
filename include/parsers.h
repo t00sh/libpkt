@@ -9,6 +9,7 @@ enum {
   LAYER_TCP,
   LAYER_UDP,
   LAYER_ICMP,
+  LAYER_ARP,
   LAYER_MAX
 };
 

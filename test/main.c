@@ -62,6 +62,15 @@ void do_icmp(layer_t *l) {
 	 code, type);
 }
 
+void do_arp(layer_t *l) {
+  u16 op;
+
+  arp_get_op(l, &op);
+
+  printf("ARP - OP:%hhu\n",
+	 op);
+}
+
 void print_layer(layer_t *l, void* user) {
   (void)user;
 
@@ -75,6 +84,9 @@ void print_layer(layer_t *l, void* user) {
     do_udp(l);
   else if(l->type == LAYER_ICMP)
     do_icmp(l);
+  else if(l->type == LAYER_ARP)
+    do_arp(l);
+
 }
 
 void handle_pkt(u_char *args, const struct pcap_pkthdr *header, const u_char *raw) {
