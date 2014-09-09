@@ -23,7 +23,7 @@ all: $(LIBRARY) $(TEST)
 
 $(TEST): $(TEST_OBJ) $(LIBRARY)
 	@echo " LINK $(TEST)" ;
-	@$(CC) $(CFLAGS) $(TEST_OBJ) $(LIBRARY) -o $(TEST)
+	@$(CC) $(CFLAGS) $(TEST_OBJ) $(LIBRARY) -lpcap -o $(TEST)
 
 $(LIBRARY): $(OBJ)
 	@echo " AR $(LIBRARY)" ;

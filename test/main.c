@@ -1,8 +1,7 @@
 #include "libpkt.h"
 #include <stdio.h>
-#include "test.h"
-
-#define RUN_TEST(n) pkt((u8*)pkt##n, sizeof(pkt##n))
+#include <string.h>
+#include <pcap.h>
 
 void do_ether(layer_t *l) {
   char src[ETHER_ADDR_STR_LEN];
@@ -52,6 +51,17 @@ void do_udp(layer_t *l) {
 	 src, dst);
 }
 
+void do_icmp(layer_t *l) {
+  u8 code;
+  u8 type;
+
+  icmp_get_code(l, &code);
+  icmp_get_type(l, &type);
+
+  printf("ICMP - CODE:%hhu TYPE:%hu\n",
+	 code, type);
+}
+
 void print_layer(layer_t *l, void* user) {
   (void)user;
 
@@ -63,12 +73,15 @@ void print_layer(layer_t *l, void* user) {
     do_tcp(l);
   else if(l->type == LAYER_UDP)
     do_udp(l);
+  else if(l->type == LAYER_ICMP)
+    do_icmp(l);
 }
 
-void pkt(u8 *raw, u32 len) {
+void handle_pkt(u_char *args, const struct pcap_pkthdr *header, const u_char *raw) {
   packet_t *pkt;
+  int *layer = (int*)args;
 
-  pkt = packet_parse(raw, len, LAYER_ETHER);
+  pkt = packet_parse((u8*)raw, (u32)header->caplen, *layer);
 
   printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++\n");
   packet_foreach_layer(pkt, print_layer, NULL);
@@ -77,106 +90,49 @@ void pkt(u8 *raw, u32 len) {
   packet_free(&pkt);
 }
 
-int main(void) {
-  RUN_TEST(1);
-  RUN_TEST(2);
-  RUN_TEST(3);
-  RUN_TEST(4);
-  RUN_TEST(5);
-  RUN_TEST(6);
-  RUN_TEST(7);
-  RUN_TEST(8);
-  RUN_TEST(9);
-  RUN_TEST(10);
-  RUN_TEST(11);
-  RUN_TEST(12);
-  RUN_TEST(13);
-  RUN_TEST(14);
-  RUN_TEST(15);
-  RUN_TEST(16);
-  RUN_TEST(17);
-  RUN_TEST(18);
-  RUN_TEST(19);
-  RUN_TEST(20);
-  RUN_TEST(21);
-  RUN_TEST(22);
-  RUN_TEST(23);
-  RUN_TEST(24);
-  RUN_TEST(25);
-  RUN_TEST(26);
-  RUN_TEST(27);
-  RUN_TEST(28);
-  RUN_TEST(29);
-  RUN_TEST(30);
-  RUN_TEST(31);
-  RUN_TEST(32);
-  RUN_TEST(33);
-  RUN_TEST(34);
-  RUN_TEST(35);
-  RUN_TEST(36);
-  RUN_TEST(37);
-  RUN_TEST(38);
-  RUN_TEST(39);
-  RUN_TEST(40);
-  RUN_TEST(41);
-  RUN_TEST(42);
-  RUN_TEST(43);
-  RUN_TEST(44);
-  RUN_TEST(45);
-  RUN_TEST(46);
-  RUN_TEST(47);
-  RUN_TEST(48);
-  RUN_TEST(49);
-  RUN_TEST(50);
-  RUN_TEST(51);
-  RUN_TEST(52);
-  RUN_TEST(53);
-  RUN_TEST(54);
-  RUN_TEST(55);
-  RUN_TEST(56);
-  RUN_TEST(57);
-  RUN_TEST(58);
-  RUN_TEST(59);
-  RUN_TEST(60);
-  RUN_TEST(61);
-  RUN_TEST(62);
-  RUN_TEST(63);
-  RUN_TEST(64);
-  RUN_TEST(65);
-  RUN_TEST(66);
-  RUN_TEST(67);
-  RUN_TEST(68);
-  RUN_TEST(69);
-  RUN_TEST(70);
-  RUN_TEST(71);
-  RUN_TEST(72);
-  RUN_TEST(73);
-  RUN_TEST(74);
-  RUN_TEST(75);
-  RUN_TEST(76);
-  RUN_TEST(77);
-  RUN_TEST(78);
-  RUN_TEST(79);
-  RUN_TEST(80);
-  RUN_TEST(81);
-  RUN_TEST(82);
-  RUN_TEST(83);
-  RUN_TEST(84);
-  RUN_TEST(85);
-  RUN_TEST(86);
-  RUN_TEST(87);
-  RUN_TEST(88);
-  RUN_TEST(89);
-  RUN_TEST(90);
-  RUN_TEST(91);
-  RUN_TEST(92);
-  RUN_TEST(93);
-  RUN_TEST(94);
-  RUN_TEST(95);
-  RUN_TEST(96);
-  RUN_TEST(97);
-  RUN_TEST(98);
-  RUN_TEST(99);
-  RUN_TEST(100);
+int main(int argc, char** argv) {
+  pcap_t *pcap = NULL;
+  const char *dev = NULL, *file = NULL;
+  char errbuf[PCAP_ERRBUF_SIZE];
+  int layer;
+
+  if(argc != 3) {
+    printf("Usage %s dev  <device>\n", argv[0]);
+    printf("Usage %s pcap <pcap>\n", argv[0]);
+    return 1;
+  }
+
+  if(!strcmp(argv[1], "dev"))
+    dev = argv[2];
+  else if(!strcmp(argv[1], "pcap"))
+    file = argv[2];
+  else
+    return 1;
+
+  if(dev) {
+    if((pcap = pcap_open_live(dev, 1500, 1, 1000, errbuf)) == NULL) {
+      fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
+      return 1;
+    }
+  }
+
+  if(file) {
+    if((pcap = pcap_open_offline(file, errbuf)) == NULL) {
+      fprintf(stderr, "Couldn't open pcap %s: %s\n", file, errbuf);
+      return 1;
+    }
+  }
+
+  if (pcap_datalink(pcap) == DLT_EN10MB) {
+    layer = LAYER_ETHER;
+  } else if(pcap_datalink(pcap) == DLT_RAW) {
+    layer = LAYER_IPV4;
+  } else {
+    fprintf(stderr, "Headers not supported\n");
+    return 1;
+  }
+
+  pcap_loop(pcap, -1, handle_pkt, (u_char*)&layer);
+
   return 0;
 }
