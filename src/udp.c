@@ -9,6 +9,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define UDP_PORT_DNS 53
+
+int udp_is_dns(layer_t *l) {
+  udp_hdr *udp = l->object;
+
+  if(ntohs(udp->src) == UDP_PORT_DNS ||
+     ntohs(udp->dst) == UDP_PORT_DNS)
+    return 1;
+  return 0;
+}
 
 int udp_parse(layer_t **layer, u8 *data, u32 size) {
     udp_hdr *udp;
@@ -31,11 +41,11 @@ int udp_parse(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_UDP;
   (*layer)->object = udp;
 
-  /* dissector_run(udp_dissectors,
+  dissector_run(udp_dissectors,
 		*layer,
-		data + UDP_HLEN(udp),
-		size - UDP_HLEN(udp));
-  */
+		data + UDP_HLEN,
+		size - UDP_HLEN);
+
 
   return 1;
 

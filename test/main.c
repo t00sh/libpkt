@@ -71,6 +71,15 @@ void do_arp(layer_t *l) {
 	 op);
 }
 
+void do_dns(layer_t *l) {
+  u16 id;
+
+  dns_get_id(l, &id);
+
+  printf("DNS - ID:%hu\n",
+	 id);
+}
+
 void print_layer(layer_t *l, void* user) {
   (void)user;
 
@@ -86,7 +95,8 @@ void print_layer(layer_t *l, void* user) {
     do_icmp(l);
   else if(l->type == LAYER_ARP)
     do_arp(l);
-
+  else if(l->type == LAYER_DNS)
+    do_dns(l);
 }
 
 void handle_pkt(u_char *args, const struct pcap_pkthdr *header, const u_char *raw) {
