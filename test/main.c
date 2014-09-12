@@ -29,6 +29,19 @@ void do_ipv4(layer_t *l) {
 	 proto, src, dst);
 }
 
+void do_ipv6(layer_t *l) {
+  char src[IPV6_ADDR_STR_LEN];
+  char dst[IPV6_ADDR_STR_LEN];
+  u8 nexthdr;
+
+  ipv6_get_saddrStr(l, src);
+  ipv6_get_daddrStr(l, dst);
+  ipv6_get_nexthdr(l, &nexthdr);
+
+  printf("IPV6 - PROTO:%hhu SRC:%s DST:%s\n",
+	 nexthdr, src, dst);
+}
+
 void do_tcp(layer_t *l) {
   u16 src;
   u16 dst;
@@ -97,6 +110,8 @@ void print_layer(layer_t *l, void* user) {
     do_arp(l);
   else if(l->type == LAYER_DNS)
     do_dns(l);
+  else if(l->type == LAYER_IPV6)
+    do_ipv6(l);
 }
 
 void handle_pkt(u_char *args, const struct pcap_pkthdr *header, const u_char *raw) {

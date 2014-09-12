@@ -9,6 +9,7 @@ int udp_parse(layer_t **layer, u8 *data, u32 size);
 int icmp_parse(layer_t **layer, u8 *data, u32 size);
 int arp_parse(layer_t **layer, u8 *data, u32 size);
 int dns_parse(layer_t **layer, u8 *data, u32 size);
+int ipv6_parse(layer_t **layer, u8 *data, u32 size);
 
 int (*layer_parsers[])(layer_t**, u8*, u32) = {
   ether_parse,    /* LAYER_ETHER  */
@@ -18,6 +19,7 @@ int (*layer_parsers[])(layer_t**, u8*, u32) = {
   icmp_parse,     /* LAYER_ICMP   */
   arp_parse,      /* LAYER_ARP    */
   dns_parse,      /* LAYER_DNS    */
+  ipv6_parse,     /* LAYER_IPV6   */
   NULL            /* LAYER_MAX    */
 };
 
@@ -33,6 +35,7 @@ int ether_is_arp(layer_t*);
 
 dissector_t ether_dissectors[] = {
   { ether_is_ipv4, ipv4_parse },
+  { ether_is_ipv6, ipv6_parse },
   { ether_is_arp, arp_parse },
   { NULL,          NULL       }
 };
@@ -50,6 +53,19 @@ dissector_t ipv4_dissectors[] = {
   { ipv4_is_tcp, tcp_parse },
   { ipv4_is_udp, udp_parse },
   { ipv4_is_icmp, icmp_parse },
+  { NULL, NULL }
+};
+
+/*************************************/
+/* ********** LAYER_IPV6 *********** */
+/*************************************/
+
+int ipv6_is_tcp(layer_t*);
+int ipv6_is_udp(layer_t*);
+
+dissector_t ipv6_dissectors[] = {
+  { ipv6_is_tcp, tcp_parse },
+  { ipv6_is_udp, udp_parse },
   { NULL, NULL }
 };
 
