@@ -12,6 +12,10 @@ enum {
   LAYER_ARP,
   LAYER_DNS,
   LAYER_IPV6,
+  LAYER_RAW,
+  LAYER_IPV6_HBH_EXT,
+  LAYER_IPV6_FRAG_EXT,
+  LAYER_IPV6_ROUTE_EXT,
   LAYER_MAX
 };
 
@@ -20,5 +24,6 @@ extern dissector_t ether_dissectors[];
 extern dissector_t ipv4_dissectors[];
 extern dissector_t udp_dissectors[];
 extern dissector_t ipv6_dissectors[];
+extern dissector_t tcp_dissectors[];
 
 #endif /* DEF_PARSERS_H */

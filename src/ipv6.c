@@ -9,20 +9,135 @@
 #include <stdlib.h>
 #include <string.h>
 
-int ipv6_is_tcp(layer_t *l) {
-  ipv6_hdr *ipv6 = l->object;
+int ipv6_get_layer_nexthdr(layer_t *l, u8* nexthdr) {
+  if(l->type == LAYER_IPV6)
+    *nexthdr = ((ipv6_hdr*)(l->object))->nexthdr;
+  else if(l->type == LAYER_IPV6_HBH_EXT)
+    *nexthdr = ((ipv6_hbh_hdr*)(l->object))->nexthdr;
+  else if(l->type == LAYER_IPV6_FRAG_EXT)
+    *nexthdr = ((ipv6_frag_hdr*)(l->object))->nexthdr;
+  else if(l->type == LAYER_IPV6_ROUTE_EXT)
+    *nexthdr = ((ipv6_route_hdr*)(l->object))->nexthdr;
+  else
+    return 0;
 
-  if(ipv6->nexthdr == IPPROTO_TCP)
+  return 1;
+}
+
+int ipv6_is_tcp(layer_t *l) {
+  u8 nexthdr;
+
+  if(ipv6_get_layer_nexthdr(l, &nexthdr) && nexthdr == IPPROTO_TCP)
     return 1;
   return 0;
 }
 
 int ipv6_is_udp(layer_t *l) {
-  ipv6_hdr *ipv6 = l->object;
+  u8 nexthdr;
 
-  if(ipv6->nexthdr == IPPROTO_UDP)
+  if(ipv6_get_layer_nexthdr(l, &nexthdr) && nexthdr == IPPROTO_UDP)
     return 1;
   return 0;
+}
+
+int ipv6_is_route_ext(layer_t *l) {
+  u8 nexthdr;
+
+  if(ipv6_get_layer_nexthdr(l, &nexthdr) && nexthdr == IPPROTO_ROUTING)
+    return 1;
+  return 0;
+}
+
+int ipv6_is_hbh_ext(layer_t *l) {
+  u8 nexthdr;
+
+  if(ipv6_get_layer_nexthdr(l, &nexthdr) && nexthdr == IPPROTO_HOPOPTS)
+    return 1;
+  return 0;
+}
+
+int ipv6_is_frag_ext(layer_t *l) {
+  u8 nexthdr;
+
+  if(ipv6_get_layer_nexthdr(l, &nexthdr) && nexthdr == IPPROTO_FRAGMENT)
+    return 1;
+  return 0;
+}
+
+int ipv6_parse_hbh_ext(layer_t **layer, u8 *data, u32 size) {
+  ipv6_hbh_hdr *hbh;
+
+  if(size < sizeof(ipv6_hbh_hdr))
+    return 0;
+
+  if((*layer = layer_new()) == NULL)
+    return 0;
+
+  hbh = (ipv6_hbh_hdr*)data;
+
+  if(size < IPV6_HBH_HLEN(hbh)) {
+    layer_free(layer);
+    return 0;
+  }
+
+  (*layer)->type = LAYER_IPV6_HBH_EXT;
+  (*layer)->object = hbh;
+
+  dissector_run(ipv6_dissectors,
+		*layer,
+		data + IPV6_HBH_HLEN(hbh),
+		size - IPV6_HBH_HLEN(hbh));
+
+  return 1;
+}
+
+int ipv6_parse_frag_ext(layer_t **layer, u8 *data, u32 size) {
+   ipv6_frag_hdr *frag;
+
+  if(size < sizeof(ipv6_frag_hdr))
+    return 0;
+
+  if((*layer = layer_new()) == NULL)
+    return 0;
+
+  frag = (ipv6_frag_hdr*)data;
+
+  (*layer)->type = LAYER_IPV6_FRAG_EXT;
+  (*layer)->object = frag;
+
+  dissector_run(ipv6_dissectors,
+		*layer,
+		data + IPV6_FRAG_HLEN,
+		size - IPV6_FRAG_HLEN);
+
+  return 1;
+}
+
+int ipv6_parse_route_ext(layer_t **layer, u8 *data, u32 size) {
+  ipv6_route_hdr *route;
+
+  if(size < sizeof(ipv6_route_hdr))
+    return 0;
+
+  if((*layer = layer_new()) == NULL)
+    return 0;
+
+  route = (ipv6_route_hdr*)data;
+
+  if(size < IPV6_ROUTE_HLEN(route)) {
+    layer_free(layer);
+    return 0;
+  }
+
+  (*layer)->type = LAYER_IPV6_ROUTE_EXT;
+  (*layer)->object = route;
+
+  dissector_run(ipv6_dissectors,
+		*layer,
+		data + IPV6_ROUTE_HLEN(route),
+		size - IPV6_ROUTE_HLEN(route));
+
+  return 1;
 }
 
 int ipv6_parse(layer_t **layer, u8 *data, u32 size) {
@@ -66,6 +181,7 @@ int ipv6_get_nexthdr(layer_t *l, u8 *nexthdr) {
   return 1;
 }
 
+/* TODO: produce a "shorter" ipv6 (replace sequence of zero by ::) */
 static void ipv6_addr_to_str(ipv6addr_t *addr, char str[IPV6_ADDR_STR_LEN]) {
   sprintf(str, "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x",
 	  addr->bytes[0],

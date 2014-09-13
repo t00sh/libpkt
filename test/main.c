@@ -42,15 +42,46 @@ void do_ipv6(layer_t *l) {
 	 nexthdr, src, dst);
 }
 
+void do_ipv6_frag_ext(layer_t *l) {
+  (void)l;
+  printf("IPV6_FRAG_EXT -\n");
+}
+
+void do_ipv6_route_ext(layer_t *l) {
+  (void)l;
+  printf("IPV6_ROUTE_EXT -\n");
+}
+
+void do_ipv6_hbh_ext(layer_t *l) {
+  (void)l;
+  printf("IPV6_HBH_EXT -\n");
+}
+
 void do_tcp(layer_t *l) {
   u16 src;
   u16 dst;
+  u16 check, window;
+  u32 seq, ack_seq;
+  u8 flags;
 
   tcp_get_sport(l, &src);
   tcp_get_dport(l, &dst);
+  tcp_get_flags(l, &flags);
+  tcp_get_check(l, &check);
+  tcp_get_window(l, &window);
+  tcp_get_seq(l, &seq);
+  tcp_get_ackSeq(l, &ack_seq);
 
-  printf("TCP - SRC:%hu DST:%hu\n",
-	 src, dst);
+  printf("TCP - SRC:%hu DST:%hu FLAGS:%s%s%s%s%s%s CHECK:%hu WINDOW:%hu SEQ:%u ACK:%u\n",
+	 src, dst,
+	 TCP_FLAGS_SYN(flags) ? "S" : "",
+	 TCP_FLAGS_FIN(flags) ? "F" : "",
+	 TCP_FLAGS_ACK(flags) ? "A" : "",
+	 TCP_FLAGS_URG(flags) ? "U" : "",
+	 TCP_FLAGS_PSH(flags) ? "P" : "",
+	 TCP_FLAGS_RST(flags) ? "R" : "",
+	 check, window, seq, ack_seq);
+
 }
 
 void do_udp(layer_t *l) {
@@ -62,6 +93,15 @@ void do_udp(layer_t *l) {
 
   printf("UDP - SRC:%hu DST:%hu\n",
 	 src, dst);
+}
+
+void do_raw(layer_t *l) {
+  u32 size;
+
+  raw_get_size(l, &size);
+
+  printf("RAW - SIZE:%u\n",
+	 size);
 }
 
 void do_icmp(layer_t *l) {
@@ -112,6 +152,14 @@ void print_layer(layer_t *l, void* user) {
     do_dns(l);
   else if(l->type == LAYER_IPV6)
     do_ipv6(l);
+  else if(l->type == LAYER_RAW)
+    do_raw(l);
+  else if(l->type == LAYER_IPV6_HBH_EXT)
+    do_ipv6_hbh_ext(l);
+  else if(l->type == LAYER_IPV6_FRAG_EXT)
+    do_ipv6_frag_ext(l);
+  else if(l->type == LAYER_IPV6_ROUTE_EXT)
+    do_ipv6_route_ext(l);
 }
 
 void handle_pkt(u_char *args, const struct pcap_pkthdr *header, const u_char *raw) {
@@ -170,6 +218,8 @@ int main(int argc, char** argv) {
   }
 
   pcap_loop(pcap, -1, handle_pkt, (u_char*)&layer);
+
+  pcap_close(pcap);
 
   return 0;
 }

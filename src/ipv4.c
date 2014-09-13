@@ -112,3 +112,116 @@ int ipv4_get_daddrStr(layer_t *l, char str[IPV4_ADDR_STR_LEN]) {
 
   return 1;
 }
+
+int ipv4_get_ihl(layer_t *l, u8* ihl) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  *ihl = hdr->ihl;
+  return 1;
+}
+
+int ipv4_get_version(layer_t *l, u8* version) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  *version = hdr->version;
+
+  return 1;
+}
+
+int ipv4_get_tos(layer_t *l, u8* tos) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  *tos = hdr->tos;
+
+  return 1;
+}
+
+int ipv4_get_totLen(layer_t *l, u16* tot_len) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  *tot_len = ntohs(hdr->tot_len);
+
+  return 1;
+}
+
+int ipv4_get_id(layer_t *l, u16* id) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  *id = ntohs(hdr->id);
+
+  return 1;
+}
+
+int ipv4_get_fragOff(layer_t *l, u16* frag_off) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  *frag_off = ntohs(hdr->frag_off);
+  return 1;
+}
+
+int ipv4_get_ttl(layer_t *l, u8* ttl) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  *ttl = hdr->ttl;
+
+  return 1;
+}
+
+int ipv4_get_check(layer_t *l, u16* check) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  *check = ntohs(hdr->check);
+
+  return 1;
+}
+
+int ipv4_get_options(layer_t *l, u8** options, u32 *options_len) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+
+  if(IPV4_HLEN(hdr) == IPV4_MIN_HLEN) {
+    *options = NULL;
+    *options_len = 0;
+  } else {
+    *options = (u8*)(hdr) + IPV4_MIN_HLEN;
+    *options_len = IPV4_HLEN(hdr) - IPV4_MIN_HLEN;
+  }
+
+  return 1;
+}

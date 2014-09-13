@@ -3,6 +3,7 @@
 #include "dissector.h"
 #include <stdlib.h>
 
+int raw_parse(layer_t **layer, u8 *data, u32 size);
 
 void dissector_run(dissector_t *dis, layer_t *cur_layer, u8* data, u32 size) {
   int i;
@@ -15,5 +16,5 @@ void dissector_run(dissector_t *dis, layer_t *cur_layer, u8* data, u32 size) {
       return;
     }
   }
-  /* TODO: parse raw data */
+  raw_parse(&cur_layer->next, data, size);
 }

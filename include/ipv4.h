@@ -33,7 +33,8 @@ typedef struct ipv4_hdr {
   u16         check;
   ipv4addr_t  saddr;
   ipv4addr_t  daddr;
-  u8*         options;
+
+  /* Options */
 }__attribute__((__packed__)) ipv4_hdr;
 
 
@@ -56,5 +57,14 @@ typedef struct ipv4_hdr {
 int ipv4_get_protocol(layer_t *l, u8 *proto);
 int ipv4_get_saddrStr(layer_t *l, char str[IPV4_ADDR_STR_LEN]);
 int ipv4_get_daddrStr(layer_t *l, char str[IPV4_ADDR_STR_LEN]);
+int ipv4_get_ihl(layer_t *l, u8* ihl);
+int ipv4_get_version(layer_t *l, u8* version);
+int ipv4_get_tos(layer_t *l, u8* tos);
+int ipv4_get_totLen(layer_t *l, u16* tot_len);
+int ipv4_get_id(layer_t *l, u16* id);
+int ipv4_get_fragOff(layer_t *l, u16* frag_off);
+int ipv4_get_ttl(layer_t *l, u8* ttl);
+int ipv4_get_check(layer_t *l, u16* check);
+int ipv4_get_options(layer_t *l, u8** options, u32 *options_len);
 
 #endif /* DEF_IPV4_H */
