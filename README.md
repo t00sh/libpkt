@@ -110,7 +110,6 @@ Get the ethertype of a LAYER_ETHER in the host byte order
 - **type** : the variable where to store the value
 
 - **@RETURN** : return 1 if layer is of type LAYER_ETHER or 0 if not (then the variable type is not set). 
-    
 
 ```c
 int ether_get_type(layer_t *l, u16 *type);
