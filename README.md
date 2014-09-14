@@ -18,25 +18,34 @@ A Network Packet Dissector Library
 ## Packet <a id="packet"></a>
 ### Functions
 
-< Parse raw data (receved with pcap for example) and return the parsed
-  packet. (must be free by packet_free). >
+_ Parse raw data (receved with pcap for example) and return the parsed
+packet. (must be free by packet_free). _
 
-**data**       : bytes of the packet
-**size**       : size of the packet (in bytes)
-**layer_type** : the layer where the packet was captured (example: LAYER_ETHER)
-**@RETURN**    : the parsed packet (must be free with packet_free) or NULL
+- **data**       : bytes of the packet
+
+- **size**       : size of the packet (in bytes)
+
+- **layer_type** : the layer where the packet was captured (example: LAYER_ETHER)
+
+- **@RETURN**    : the parsed packet (must be free with packet_free) or NULL
 	       	 if an error occured
 
+```c
 packet_t* packet_parse(u8* data, u32 size, int layer_type);
+```
 
-< Get the next layer of type layer >
+_ Get the next layer of type layer _
 
-**p**       : The packet
-**layer**   : The layer type
-**@RETURN** : Return the first layer if type **layer** or NULL
+- **p**       : The packet
+
+- **layer**   : The layer type
+
+- **@RETURN** : Return the first layer if type **layer** or NULL
 	      if layer wasn't find
 
+```c
 layer_t* packet_get_layer(packet_t *p, int layer);
+```
 
 ## Ethernet <a id="ethernet"></a>
 
