@@ -14,6 +14,8 @@ A Network Packet Dissector Library
 
 [Udp](#udp-)
 
+[Examples](#examples-)
+
 
 ## Packet <a id="packet"></a>
 #### Functions
@@ -44,7 +46,7 @@ Get the next layer of type layer (constantes LAYER_*)
 
 - **layer**   : The layer type
 
-- **@RETURN** : Return the first layer if type **layer** or NULL
+- **@RETURN** : Return the first layer of type **layer** or NULL
 	      if layer wasn't find
 
 ```c
@@ -97,21 +99,149 @@ void packet_foreach_layer(packet_t *p, void (*callback)(layer_t*, void* user), v
 
 ## Ethernet <a id="ethernet"></a>
 
+#### Functions
+
+----------------------------------------
+
+Get the ethertype of a LAYER_ETHER in the host byte order
+
+- **l**  : the layer
+
+- **type** : the variable where to store the value
+
+- **@RETURN** : return 1 if layer is of type LAYER_ETHER or 0 if not (then the variable type is not set). 
+    
+
+```c
 int ether_get_type(layer_t *l, u16 *type);
+```c
+
+-----------------------------------------
+
+Get the string representation of the source address of a LAYER_ETHER layer. 
+
+- **l**  : the layer
+
+- **addr** : the buffer where to store the string. (Must have a size of ETH_ADDR_STR_LEN) 
+
+- **@RETURN** : return 1 if layer is of type LAYER_ETHER or 0 if not (then the variable addr is not set). 
+
+```c
 int ether_get_srcStr(layer_t *l, char* addr[ETH_ADDR_STR_LEN]);
+```
+
+-----------------------------------------
+
+Get the string representation of the destination address of a LAYER_ETHER layer. 
+
+- **l**  : the layer
+
+- **addr** : the buffer where to store the string. (Must have a size of ETH_ADDR_STR_LEN) 
+
+- **@RETURN** : return 1 if layer is of type LAYER_ETHER or 0 if not (then the variable addr is not set). 
+
+```c
 int ether_get_dstStr(layer_t *l, char* addr[ETH_ADDR_STR_LEN]);
+```
+
+-----------------------------------------
 
 ## Ivp4 <a id="ipv4"></a>
 
+#### Functions
+
+--------------------------------------
+
+Get the string representation of the source address of a LAYER_IPV4 layer. 
+
+- **l**  : the layer
+
+- **addr** : the buffer where to store the string. (Must have a size of IPV4_ADDR_STR_LEN) 
+
+- **@RETURN** : return 1 if layer is of type LAYER_IPV4 or 0 if not (then the variable addr is not set). 
+
+```c
 int ipv4_get_srcStr(layer_t *l, char* addr[IPV4_ADDR_STR_LEN]);
+```
+
+---------------------------------------
+
+Get the string representation of the destination address of a LAYER_IPV4 layer. 
+
+- **l**  : the layer
+
+- **addr** : the buffer where to store the string. (Must have a size of IPV4_ADDR_STR_LEN) 
+
+- **@RETURN** : return 1 if layer is of type LAYER_IPV4 or 0 if not (then the variable addr is not set). 
+
+```c
 int ipv4_get_dstStr(layer_t *l, char* addr[IPV4_ADDR_STR_LEN]);
+```
+
+-------------------------------------
 
 ## Tcp <a id="tcp"></a>
 
+#### Functions
+
+---------------------------------------
+
+Get the source port of a LAYER_TCP layer in host byte order. 
+
+- **l**  : the layer
+
+- **port** : the variable where to store the value.
+
+- **@RETURN** : return 1 if layer is of type LAYER_TCP or 0 if not (then the variable port is not set). 
+
+```c
 int tcp_get_src(layer_t *l, u16 *port);
+```
+
+-----------------------------------------
+
+Get the destination port of a LAYER_TCP layer in host byte order. 
+
+- **l**  : the layer
+
+- **port** : the variable where to store the value.
+
+- **@RETURN** : return 1 if layer is of type LAYER_TCP or 0 if not (then the variable port is not set). 
+
+```c
 int tcp_get_dst(layer_t *l, u16 *port);
+```
+
+------------------------------------------
 
 ## Udp <a id="udp"></a>
 
+Get the source port of a LAYER_UDP layer in host byte order. 
+
+- **l**  : the layer
+
+- **port** : the variable where to store the value.
+
+- **@RETURN** : return 1 if layer is of type LAYER_UDP or 0 if not (then the variable port is not set). 
+
+```c
 int udp_get_src(layer_t *l, u16 *port);
+```
+
+----------------------------------------
+
+Get the destination port of a LAYER_UDP layer in host byte order. 
+
+- **l**  : the layer
+
+- **port** : the variable where to store the value.
+
+- **@RETURN** : return 1 if layer is of type LAYER_UDP or 0 if not (then the variable port is not set). 
+
+```c
 int udp_get_dst(layer_t *l, u16 *port);
+```
+
+## Examples <a id="examples"></a>
+
+[Example 1](https://github.com/t00sh/libpkt/blob/master/test/main.c)
