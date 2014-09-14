@@ -113,7 +113,7 @@ Get the ethertype of a LAYER_ETHER in the host byte order
 
 ```c
 int ether_get_type(layer_t *l, u16 *type);
-```c
+```
 
 -----------------------------------------
 
