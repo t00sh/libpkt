@@ -51,7 +51,8 @@ int ipv4_parse(layer_t **layer, u8 *data, u32 size) {
     return 0;
   }
 
-  if(ntohs(ipv4->tot_len) > size) {
+  if(ntohs(ipv4->tot_len) > size ||
+     ntohs(ipv4->tot_len) < IPV4_HLEN(ipv4)) {
     /* TODO: return error infos */
 
     layer_free(layer);
@@ -64,7 +65,8 @@ int ipv4_parse(layer_t **layer, u8 *data, u32 size) {
   dissector_run(ipv4_dissectors,
 		*layer,
 		data + IPV4_HLEN(ipv4),
-		size - IPV4_HLEN(ipv4));
+		ntohs(ipv4->tot_len) - IPV4_HLEN(ipv4)
+		);
 
   return 1;
 }
