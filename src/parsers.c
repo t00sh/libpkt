@@ -102,3 +102,11 @@ dissector_t udp_dissectors[] = {
 dissector_t tcp_dissectors[] = {
   { NULL, NULL }
 };
+
+/*************************************/
+/* ********** LAYER_ICMP  *********** */
+/*************************************/
+
+dissector_t icmp_dissectors[] = {
+  { NULL, NULL }
+};

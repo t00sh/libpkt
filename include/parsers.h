@@ -25,5 +25,6 @@ extern dissector_t ipv4_dissectors[];
 extern dissector_t udp_dissectors[];
 extern dissector_t ipv6_dissectors[];
 extern dissector_t tcp_dissectors[];
+extern dissector_t icmp_dissectors[];
 
 #endif /* DEF_PARSERS_H */

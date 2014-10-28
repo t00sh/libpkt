@@ -23,11 +23,11 @@ int icmp_parse(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_ICMP;
   (*layer)->object = icmp;
 
-  /* dissector_run(icmp_dissectors,
+  dissector_run(icmp_dissectors,
 		*layer,
-		data + ICMP_HLEN(icmp),
-		size - ICMP_HLEN(icmp));
-  */
+		data + ICMP_MIN_HLEN,
+		size - ICMP_MIN_HLEN);
+
 
   return 1;
 
