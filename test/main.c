@@ -2,6 +2,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <pcap.h>
+#include <ctype.h>
+
+void dump_bytes(u8 *b, u32 l) {
+  u32 i;
+
+  for(i = 0; i < l; i++) {
+    if(isprint(b[i]))
+      printf("%c", b[i]);
+    else
+      printf("\\x%.2x", b[i]);
+  }
+}
 
 void do_ether(layer_t *l) {
   char src[ETHER_ADDR_STR_LEN];
@@ -97,11 +109,15 @@ void do_udp(layer_t *l) {
 
 void do_raw(layer_t *l) {
   u32 size;
+  u8 *data;
 
   raw_get_size(l, &size);
+  raw_get_data(l, &data);
 
-  printf("RAW - SIZE:%u\n",
+  printf("RAW - SIZE:%u ",
 	 size);
+  dump_bytes(data, size);
+  printf("\n");
 }
 
 void do_icmp(layer_t *l) {
@@ -133,6 +149,19 @@ void do_dns(layer_t *l) {
 	 id);
 }
 
+void do_tls(layer_t *l) {
+  const char *ctype;
+  u8 ver_maj;
+  u8 ver_min;
+
+  tls_get_ctypeStr(l, &ctype);
+  tls_get_versionmaj(l, &ver_maj);
+  tls_get_versionmin(l, &ver_min);
+
+  printf("SSL/TLS - CTYPE:%s VERSION: %d.%d\n",
+	 ctype, ver_maj, ver_min);
+}
+
 void print_layer(layer_t *l, void* user) {
   (void)user;
 
@@ -160,6 +189,8 @@ void print_layer(layer_t *l, void* user) {
     do_ipv6_frag_ext(l);
   else if(l->type == LAYER_IPV6_ROUTE_EXT)
     do_ipv6_route_ext(l);
+  else if(l->type == LAYER_TLS)
+    do_tls(l);
 }
 
 void handle_pkt(u_char *args, const struct pcap_pkthdr *header, const u_char *raw) {
