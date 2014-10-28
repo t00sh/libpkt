@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "packet.h"
+#include "tls.h"
 #include "raw.h"
 #include "ipv6.h"
 #include "dns.h"

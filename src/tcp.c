@@ -9,6 +9,42 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TCP_PORT_NSIIOPS 261
+#define TCP_PORT_HTTPS 443
+#define TCP_PORT_DDM_SSL 448
+#define TCP_PORT_SMTPS 465
+#define TCP_PORT_NNTPS 563
+#define TCP_PORT_SSHELL 614
+#define TCP_PORT_LDAPS 636
+#define TCP_PORT_FTPS_DATA 989
+#define TCP_PORT_FTPS 990
+#define TCP_PORT_TELNETS 992
+#define TCP_PORT_IMAPS 993
+#define TCP_PORT_IRCS 994
+#define TCP_PORT_POP3S 995
+
+#define TCP_CHECK_PORT(h,p) (ntohs(h->src) == p || ntohs(h->dst) == p)
+
+int tcp_is_tls(layer_t *l) {
+  tcp_hdr *tcp = l->object;
+
+  if(TCP_CHECK_PORT(tcp, TCP_PORT_NSIIOPS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_HTTPS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_DDM_SSL) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_SMTPS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_NNTPS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_SSHELL) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_LDAPS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_FTPS_DATA) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_FTPS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_TELNETS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_IMAPS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_IRCS) ||
+     TCP_CHECK_PORT(tcp, TCP_PORT_POP3S))
+    return 1;
+  return 0;
+}
+
 int tcp_parse(layer_t **layer, u8 *data, u32 size) {
     tcp_hdr *tcp;
 

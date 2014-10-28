@@ -15,6 +15,7 @@ int raw_parse(layer_t **layer, u8 *data, u32 size);
 int ipv6_parse_hbh_ext(layer_t **layer, u8 *data, u32 size);
 int ipv6_parse_frag_ext(layer_t **layer, u8 *data, u32 size);
 int ipv6_parse_route_ext(layer_t **layer, u8 *data, u32 size);
+int tls_parse(layer_t **layer, u8 *data, u32 size);
 
 int (*layer_parsers[])(layer_t**, u8*, u32) = {
   ether_parse,           /* LAYER_ETHER           */
@@ -29,9 +30,9 @@ int (*layer_parsers[])(layer_t**, u8*, u32) = {
   ipv6_parse_hbh_ext,    /* LAYER_IPV6_HBH_EXT    */
   ipv6_parse_frag_ext,   /* LAYER_IPV6_FRAG_EXT   */
   ipv6_parse_route_ext,  /* LAYER_IPV6_ROUTE_EXT  */
+  tls_parse,             /* LAYER_TLS             */
   NULL                   /* LAYER_MAX             */
 };
-
 
 
 /********************************************/
@@ -99,7 +100,10 @@ dissector_t udp_dissectors[] = {
 /* ********** LAYER_TCP  *********** */
 /*************************************/
 
+int tcp_is_tls(layer_t *l);
+
 dissector_t tcp_dissectors[] = {
+  { tcp_is_tls, tls_parse },
   { NULL, NULL }
 };
 
@@ -108,5 +112,16 @@ dissector_t tcp_dissectors[] = {
 /*************************************/
 
 dissector_t icmp_dissectors[] = {
+  { NULL, NULL }
+};
+
+/*************************************/
+/* ********** LAYER_TLS  *********** */
+/*************************************/
+
+int tls_is_tls(layer_t *l);
+
+dissector_t tls_dissectors[] = {
+  { tls_is_tls, tls_parse },
   { NULL, NULL }
 };
