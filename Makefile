@@ -14,6 +14,7 @@ CFLAGS += -DVERSION="\"$(VERSION)\"" -DPACKAGE="\"$(PACKAGE)\""
 
 SRC  = $(wildcard src/*.c)
 OBJ  = $(SRC:%.c=%.o)
+INC  = $(wildcard include/*.h)
 
 TEST_SRC  = $(wildcard test/*.c)
 TEST_OBJ  = $(TEST_SRC:%.c=%.o)
@@ -21,7 +22,7 @@ TEST_OBJ  = $(TEST_SRC:%.c=%.o)
 LIBRARY = $(PACKAGE).a
 TEST = test.bin
 
-all: $(LIBRARY) $(TEST)
+all: $(DOC_DIR) $(LIBRARY) $(TEST)
 
 $(TEST): $(TEST_OBJ) $(LIBRARY)
 	@echo " LINK $(TEST)" ;
@@ -35,11 +36,9 @@ $(LIBRARY): $(OBJ)
 	@echo " CC $@" ;
 	@$(CC) $(CFLAGS) -c $< -o $@ ;
 
-$(DOC_DIR):
+$(DOC_DIR): $(INC)
 	@doxygen Doxyfile
 clean:
 	rm $(LIBRARY) $(OBJ) $(TEST_OBJ) $(TEST)
 	find . -name "*~" -delete
-
-clean_doc:
 	rm -rf $(DOC_DIR)
