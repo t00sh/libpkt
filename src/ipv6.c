@@ -1,3 +1,26 @@
+/************************************************************************/
+/* libpkt - A packet dissector library  			        */
+/* 								        */
+/* Copyright 2014, -TOSH-					        */
+/* File coded by -TOSH-	(tosh <at> t0x0sh <dot> org		        */
+/* 								        */
+/* This file is part of libpkt.					        */
+/* 								        */
+/* libpkt is free software: you can redistribute it and/or modify       */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or    */
+/* (at your option) any later version.				        */
+/* 								        */
+/* libpkt is distributed in the hope that it will be useful,	        */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of       */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        */
+/* GNU General Public License for more details.			        */
+/* 								        */
+/* You should have received a copy of the GNU General Public License    */
+/* along with libpkt.  If not, see <http://www.gnu.org/licenses/>       */
+/************************************************************************/
+
+
 #include "packet.h"
 #include "types.h"
 #include "dissector.h"
@@ -8,6 +31,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+#define IPV6_HBH_HLEN(h) (8UL + (h->hdr_len << 3))
+#define IPV6_FRAG_HLEN 8UL
+#define IPV6_ROUTE_HLEN(h) (8UL + (h->hdr_len << 3))
+
+#define IPV6_MIN_HLEN 40UL
+#define IPV6_IS_VALID_LEN(len) (len >= IPV6_MIN_HLEN)
+#define IPV6_HLEN (IPV6_MIN_HLEN)
 
 int ipv6_get_layer_nexthdr(layer_t *l, u8* nexthdr) {
   if(l->type == LAYER_IPV6)
@@ -64,7 +96,7 @@ int ipv6_is_frag_ext(layer_t *l) {
   return 0;
 }
 
-int ipv6_parse_hbh_ext(layer_t **layer, u8 *data, u32 size) {
+int ipv6_parse_hbh_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
   ipv6_hbh_hdr *hbh;
 
   if(size < sizeof(ipv6_hbh_hdr))
@@ -83,7 +115,8 @@ int ipv6_parse_hbh_ext(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_IPV6_HBH_EXT;
   (*layer)->object = hbh;
 
-  dissector_run(ipv6_dissectors,
+  dissector_run(p,
+		ipv6_dissectors,
 		*layer,
 		data + IPV6_HBH_HLEN(hbh),
 		size - IPV6_HBH_HLEN(hbh));
@@ -91,8 +124,8 @@ int ipv6_parse_hbh_ext(layer_t **layer, u8 *data, u32 size) {
   return 1;
 }
 
-int ipv6_parse_frag_ext(layer_t **layer, u8 *data, u32 size) {
-   ipv6_frag_hdr *frag;
+int ipv6_parse_frag_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+  ipv6_frag_hdr *frag;
 
   if(size < sizeof(ipv6_frag_hdr))
     return 0;
@@ -105,7 +138,8 @@ int ipv6_parse_frag_ext(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_IPV6_FRAG_EXT;
   (*layer)->object = frag;
 
-  dissector_run(ipv6_dissectors,
+  dissector_run(p,
+		ipv6_dissectors,
 		*layer,
 		data + IPV6_FRAG_HLEN,
 		size - IPV6_FRAG_HLEN);
@@ -113,7 +147,7 @@ int ipv6_parse_frag_ext(layer_t **layer, u8 *data, u32 size) {
   return 1;
 }
 
-int ipv6_parse_route_ext(layer_t **layer, u8 *data, u32 size) {
+int ipv6_parse_route_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
   ipv6_route_hdr *route;
 
   if(size < sizeof(ipv6_route_hdr))
@@ -132,7 +166,8 @@ int ipv6_parse_route_ext(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_IPV6_ROUTE_EXT;
   (*layer)->object = route;
 
-  dissector_run(ipv6_dissectors,
+  dissector_run(p,
+		ipv6_dissectors,
 		*layer,
 		data + IPV6_ROUTE_HLEN(route),
 		size - IPV6_ROUTE_HLEN(route));
@@ -140,7 +175,7 @@ int ipv6_parse_route_ext(layer_t **layer, u8 *data, u32 size) {
   return 1;
 }
 
-int ipv6_parse(layer_t **layer, u8 *data, u32 size) {
+int ipv6_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
   ipv6_hdr *ipv6;
 
   if(!IPV6_IS_VALID_LEN(size))
@@ -161,7 +196,8 @@ int ipv6_parse(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_IPV6;
   (*layer)->object = ipv6;
 
-  dissector_run(ipv6_dissectors,
+  dissector_run(p,
+		ipv6_dissectors,
 		*layer,
 		data + IPV6_HLEN,
 		size - IPV6_HLEN);
@@ -222,6 +258,30 @@ int ipv6_get_daddrStr(layer_t *l, char str[IPV6_ADDR_STR_LEN]) {
 
   hdr = l->object;
   ipv6_addr_to_str(&hdr->daddr, str);
+
+  return 1;
+}
+
+int ipv6_get_saddr(layer_t *l, ipv6addr_t *addr) {
+  ipv6_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV6)
+    return 0;
+
+  hdr = l->object;
+  memcpy(addr, &hdr->saddr, sizeof(ipv6addr_t));
+
+  return 1;
+}
+
+int ipv6_get_daddr(layer_t *l, ipv6addr_t *addr) {
+  ipv6_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV6)
+    return 0;
+
+  hdr = l->object;
+  memcpy(addr, &hdr->daddr, sizeof(ipv6addr_t));
 
   return 1;
 }

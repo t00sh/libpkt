@@ -1,7 +1,9 @@
-.PHONY: clean
+.PHONY: clean clean_doc
 
 VERSION = 1.0.0
 PACKAGE = libpkt
+
+DOC_DIR=html
 
 CC = gcc
 AR = ar
@@ -33,6 +35,11 @@ $(LIBRARY): $(OBJ)
 	@echo " CC $@" ;
 	@$(CC) $(CFLAGS) -c $< -o $@ ;
 
+$(DOC_DIR):
+	@doxygen Doxyfile
 clean:
 	rm $(LIBRARY) $(OBJ) $(TEST_OBJ) $(TEST)
 	find . -name "*~" -delete
+
+clean_doc:
+	rm -rf $(DOC_DIR)

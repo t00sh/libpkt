@@ -1,3 +1,26 @@
+/************************************************************************/
+/* libpkt - A packet dissector library  			        */
+/* 								        */
+/* Copyright 2014, -TOSH-					        */
+/* File coded by -TOSH-	(tosh <at> t0x0sh <dot> org		        */
+/* 								        */
+/* This file is part of libpkt.					        */
+/* 								        */
+/* libpkt is free software: you can redistribute it and/or modify       */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or    */
+/* (at your option) any later version.				        */
+/* 								        */
+/* libpkt is distributed in the hope that it will be useful,	        */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of       */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        */
+/* GNU General Public License for more details.			        */
+/* 								        */
+/* You should have received a copy of the GNU General Public License    */
+/* along with libpkt.  If not, see <http://www.gnu.org/licenses/>       */
+/************************************************************************/
+
+
 #include "types.h"
 #include "packet.h"
 #include "dissector.h"
@@ -10,6 +33,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#define ETHER_HLEN	14
+#define	ETHER_IS_VALID_LEN(l) ((l) >= ETHER_HLEN)
 
 int ether_is_ipv4(layer_t *l) {
   ether_hdr *hdr = l->object;
@@ -39,7 +64,7 @@ int ether_is_arp(layer_t *l) {
 }
 
 /* TODO: better error handling (not just return 0) */
-int ether_parse(layer_t **layer, u8 *data, u32 size) {
+int ether_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
 
   if(!ETHER_IS_VALID_LEN(size))
     return 0;
@@ -50,7 +75,8 @@ int ether_parse(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_ETHER;
   (*layer)->object = data;
 
-  dissector_run(ether_dissectors,
+  dissector_run(p,
+		ether_dissectors,
 		*layer,
 		data + ETHER_HLEN,
 		size - ETHER_HLEN);

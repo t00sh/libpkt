@@ -1,3 +1,26 @@
+/************************************************************************/
+/* libpkt - A packet dissector library  			        */
+/* 								        */
+/* Copyright 2014, -TOSH-					        */
+/* File coded by -TOSH-	(tosh <at> t0x0sh <dot> org		        */
+/* 								        */
+/* This file is part of libpkt.					        */
+/* 								        */
+/* libpkt is free software: you can redistribute it and/or modify       */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or    */
+/* (at your option) any later version.				        */
+/* 								        */
+/* libpkt is distributed in the hope that it will be useful,	        */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of       */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        */
+/* GNU General Public License for more details.			        */
+/* 								        */
+/* You should have received a copy of the GNU General Public License    */
+/* along with libpkt.  If not, see <http://www.gnu.org/licenses/>       */
+/************************************************************************/
+
+
 #include "packet.h"
 #include "types.h"
 #include "dissector.h"
@@ -8,6 +31,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+#define TCP_MIN_HLEN (sizeof(tcp_hdr))
+#define TCP_IS_VALID_LEN(len) (len >= TCP_MIN_HLEN)
+#define TCP_HLEN(h) ((u16)(((tcp_hdr*)(h))->doff << 2))
 
 #define TCP_PORT_NSIIOPS 261
 #define TCP_PORT_HTTPS 443
@@ -45,7 +73,7 @@ int tcp_is_tls(layer_t *l) {
   return 0;
 }
 
-int tcp_parse(layer_t **layer, u8 *data, u32 size) {
+int tcp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
     tcp_hdr *tcp;
 
   if(!TCP_IS_VALID_LEN(size))
@@ -66,7 +94,8 @@ int tcp_parse(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_TCP;
   (*layer)->object = tcp;
 
-  dissector_run(tcp_dissectors,
+  dissector_run(p,
+		tcp_dissectors,
 		*layer,
 		data + TCP_HLEN(tcp),
 		size - TCP_HLEN(tcp));

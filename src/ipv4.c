@@ -1,3 +1,26 @@
+/************************************************************************/
+/* libpkt - A packet dissector library  			        */
+/* 								        */
+/* Copyright 2014, -TOSH-					        */
+/* File coded by -TOSH-	(tosh <at> t0x0sh <dot> org		        */
+/* 								        */
+/* This file is part of libpkt.					        */
+/* 								        */
+/* libpkt is free software: you can redistribute it and/or modify       */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or    */
+/* (at your option) any later version.				        */
+/* 								        */
+/* libpkt is distributed in the hope that it will be useful,	        */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of       */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        */
+/* GNU General Public License for more details.			        */
+/* 								        */
+/* You should have received a copy of the GNU General Public License    */
+/* along with libpkt.  If not, see <http://www.gnu.org/licenses/>       */
+/************************************************************************/
+
+
 #include "packet.h"
 #include "types.h"
 #include "dissector.h"
@@ -8,6 +31,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define IPV4_MIN_HLEN (sizeof(ipv4_hdr))
+#define IPV4_IS_VALID_LEN(len) (len >= IPV4_MIN_HLEN)
+#define IPV4_HLEN(h) ((u16)(((ipv4_hdr*)(h))->ihl << 2))
+#define IPV4_HAVE_OPTIONS(h) (IPV4_HLEN(h) > IPV4_MIN_HLEN)
 
 int ipv4_is_tcp(layer_t *l) {
   ipv4_hdr *ipv4 = l->object;
@@ -33,7 +61,7 @@ int ipv4_is_icmp(layer_t *l) {
   return 0;
 }
 
-int ipv4_parse(layer_t **layer, u8 *data, u32 size) {
+int ipv4_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
   ipv4_hdr *ipv4;
 
   if(!IPV4_IS_VALID_LEN(size))
@@ -62,7 +90,8 @@ int ipv4_parse(layer_t **layer, u8 *data, u32 size) {
   (*layer)->type = LAYER_IPV4;
   (*layer)->object = ipv4;
 
-  dissector_run(ipv4_dissectors,
+  dissector_run(p,
+		ipv4_dissectors,
 		*layer,
 		data + IPV4_HLEN(ipv4),
 		ntohs(ipv4->tot_len) - IPV4_HLEN(ipv4)
@@ -111,6 +140,30 @@ int ipv4_get_daddrStr(layer_t *l, char str[IPV4_ADDR_STR_LEN]) {
 
   hdr = l->object;
   ipv4_addr_to_str(&hdr->daddr, str);
+
+  return 1;
+}
+
+int ipv4_get_saddr(layer_t *l, ipv4addr_t *addr) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  memcpy(addr, &hdr->saddr, sizeof(ipv4addr_t));
+
+  return 1;
+}
+
+int ipv4_get_daddr(layer_t *l, ipv4addr_t *addr) {
+  ipv4_hdr *hdr;
+
+  if(l->type !=  LAYER_IPV4)
+    return 0;
+
+  hdr = l->object;
+  memcpy(addr, &hdr->daddr, sizeof(ipv4addr_t));
 
   return 1;
 }

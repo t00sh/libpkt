@@ -1,0 +1,16 @@
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "Libpacket"
+PROJECT_BRIEF          = "A library packet dissection"
+OUTPUT_LANGUAGE        = English
+MARKDOWN_SUPPORT       = YES
+RECURSIVE              = YES
+GENERATE_LATEX         = NO
+TYPEDEF_HIDES_STRUCT   = YES
+ENUM_VALUES_PER_LINE   = 1
+HAVE_DOT               = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = __attribute__(x)=

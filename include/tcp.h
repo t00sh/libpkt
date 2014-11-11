@@ -1,16 +1,46 @@
+/************************************************************************/
+/* libpkt - A packet dissector library  			        */
+/* 								        */
+/* Copyright 2014, -TOSH-					        */
+/* File coded by -TOSH-	(tosh <at> t0x0sh <dot> org		        */
+/* 								        */
+/* This file is part of libpkt.					        */
+/* 								        */
+/* libpkt is free software: you can redistribute it and/or modify       */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or    */
+/* (at your option) any later version.				        */
+/* 								        */
+/* libpkt is distributed in the hope that it will be useful,	        */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of       */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        */
+/* GNU General Public License for more details.			        */
+/* 								        */
+/* You should have received a copy of the GNU General Public License    */
+/* along with libpkt.  If not, see <http://www.gnu.org/licenses/>       */
+/************************************************************************/
+
+
 #ifndef DEF_TCP_H
 #define DEF_TCP_H
 
 #include "types.h"
-#include <sys/types.h>
 
+/*!
+ * \file
+ * \brief Implement LAYER_TCP
+ */
+
+/*! TCP header
+ * \private
+ */
 typedef struct tcp_hdr {
-	u16	src;
-	u16	dst;
-	u32	seq;
-	u32	ack_seq;
+  u16 src;
+  u16 dst;
+  u32 seq;
+  u32 ack_seq;
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   u8	res1:4,
     doff:4;
   union {
@@ -26,7 +56,7 @@ typedef struct tcp_hdr {
     };
     u8 flags;
   };
-#elif __BYTE_ORDER == __BIG_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 	u8	doff:4,
 	  res1:4;
   union {
@@ -43,17 +73,12 @@ typedef struct tcp_hdr {
     u8 flags;
   }
 #else
-#error	"Adjust your <asm/byteorder.h> defines"
+#error	"Endianness undefined ?!"
 #endif
-	u16	window;
-	u16	check;
-	u16	urg_ptr;
+  u16	window;
+  u16	check;
+  u16	urg_ptr;
 }__attribute__((__packed__)) tcp_hdr;
-
-
-#define TCP_MIN_HLEN 20UL
-#define TCP_IS_VALID_LEN(len) (len >= TCP_MIN_HLEN)
-#define TCP_HLEN(h) ((u16)(((tcp_hdr*)(h))->doff << 2))
 
 
 int tcp_get_dport(layer_t *l, u16 *port);

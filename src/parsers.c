@@ -1,23 +1,48 @@
+/************************************************************************/
+/* libpkt - A packet dissector library  			        */
+/* 								        */
+/* Copyright 2014, -TOSH-					        */
+/* File coded by -TOSH-	(tosh <at> t0x0sh <dot> org		        */
+/* 								        */
+/* This file is part of libpkt.					        */
+/* 								        */
+/* libpkt is free software: you can redistribute it and/or modify       */
+/* it under the terms of the GNU General Public License as published by */
+/* the Free Software Foundation, either version 3 of the License, or    */
+/* (at your option) any later version.				        */
+/* 								        */
+/* libpkt is distributed in the hope that it will be useful,	        */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of       */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        */
+/* GNU General Public License for more details.			        */
+/* 								        */
+/* You should have received a copy of the GNU General Public License    */
+/* along with libpkt.  If not, see <http://www.gnu.org/licenses/>       */
+/************************************************************************/
+
+
 #include "dissector.h"
 #include "packet.h"
 #include "types.h"
 
+#include <stdlib.h>
 
-int ether_parse(layer_t **layer, u8 *data, u32 size);
-int ipv4_parse(layer_t **layer, u8 *data, u32 size);
-int tcp_parse(layer_t **layer, u8 *data, u32 size);
-int udp_parse(layer_t **layer, u8 *data, u32 size);
-int icmp_parse(layer_t **layer, u8 *data, u32 size);
-int arp_parse(layer_t **layer, u8 *data, u32 size);
-int dns_parse(layer_t **layer, u8 *data, u32 size);
-int ipv6_parse(layer_t **layer, u8 *data, u32 size);
-int raw_parse(layer_t **layer, u8 *data, u32 size);
-int ipv6_parse_hbh_ext(layer_t **layer, u8 *data, u32 size);
-int ipv6_parse_frag_ext(layer_t **layer, u8 *data, u32 size);
-int ipv6_parse_route_ext(layer_t **layer, u8 *data, u32 size);
-int tls_parse(layer_t **layer, u8 *data, u32 size);
 
-int (*layer_parsers[])(layer_t**, u8*, u32) = {
+int ether_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int ipv4_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int tcp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int udp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int icmp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int arp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int dns_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int ipv6_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int raw_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int ipv6_parse_hbh_ext(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int ipv6_parse_frag_ext(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int ipv6_parse_route_ext(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int tls_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+
+int (*layer_parsers[])(packet_t *p, layer_t**, u8*, u32) = {
   ether_parse,           /* LAYER_ETHER           */
   ipv4_parse,            /* LAYER_IPV4            */
   tcp_parse,             /* LAYER_TCP             */
