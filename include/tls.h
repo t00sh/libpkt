@@ -57,12 +57,34 @@ typedef struct tls_hdr {
   u16 length;
 }__attribute__((__packed__)) tls_hdr;
 
+/*! TLS object types */
+typedef enum tls_types {
+  TLS_TYPE_DATA,   /**< Continuous data */
+  TLS_TYPE_HEADER, /**< Contain header */
+}tls_types;
 
+/*! TLS continuous data
+ * \private
+ */
+typedef struct tls_data {
+  u8 *bytes;
+  u32 len;
+}tls_data;
+
+/*! TLS structure
+ * \private
+ */
+typedef struct tls_obj {
+  tls_types type;
+  void *obj;
+}tls_obj;
+
+/*! TLS content types */
 typedef enum tls_ctype {
-  TLS_CTYPE_CHANGECIPHERSPECS=20,
-  TLS_CTYPE_ALERT=21,
-  TLS_CTYPE_HANDSHAKE=22,
-  TLS_CTYPE_DATA=23
+  TLS_CTYPE_CHANGECIPHERSPECS=20, /**< Change cipher */
+  TLS_CTYPE_ALERT=21,             /**< TLS alert */
+  TLS_CTYPE_HANDSHAKE=22,         /**< TLS handshake */
+  TLS_CTYPE_DATA=23               /**< TLS data */
 }tls_ctype;
 
 /*! tls handshake header
@@ -82,6 +104,7 @@ typedef struct tls_handshake {
   };
 }__attribute__((__packed__)) tls_handshake;
 
+/** TLS handshake types */
 typedef enum tls_handshake_type {
   TLS_HANDSHAKE_HELLO_REQUEST=0,
   TLS_HANDSHAKE_CLIENT_HELLO=1,
@@ -95,9 +118,22 @@ typedef enum tls_handshake_type {
   TLS_HANDSHAKE_FINISHED=20
 }tls_handshake_type;
 
+/*! Get content type */
 int tls_get_ctype(layer_t *l, u8 *ctype);
+
+/*! Get version major */
 int tls_get_versionmaj(layer_t *l, u8 *ver);
+
+/*! Get version minor */
 int tls_get_versionmin(layer_t *l, u8 *ver);
+
+/*! Get content type (string) */
 int tls_get_ctypeStr(layer_t *l, const char **ctype);
+
+/*! Get TLS object type */
+int tls_get_type(layer_t *l, int *type);
+
+/*! Get TLS data length */
+int tls_get_length(layer_t *l, u16 *length);
 
 #endif /* DEF_TLS_H */

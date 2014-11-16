@@ -153,13 +153,22 @@ void do_tls(layer_t *l) {
   const char *ctype;
   u8 ver_maj;
   u8 ver_min;
+  u16 length;
+  int type;
 
-  tls_get_ctypeStr(l, &ctype);
-  tls_get_versionmaj(l, &ver_maj);
-  tls_get_versionmin(l, &ver_min);
+  tls_get_type(l, &type);
 
-  printf("SSL/TLS - CTYPE:%s VERSION: %d.%d\n",
-	 ctype, ver_maj, ver_min);
+  if(type == TLS_TYPE_HEADER) {
+    tls_get_ctypeStr(l, &ctype);
+    tls_get_versionmaj(l, &ver_maj);
+    tls_get_versionmin(l, &ver_min);
+    tls_get_length(l, &length);
+
+    printf("SSL/TLS - CTYPE:%s VERSION: %d.%d LENGTH=%u\n",
+	   ctype, ver_maj, ver_min, length);
+  } else {
+    printf("SSL/TLS - continuous data\n");
+  }
 }
 
 void print_layer(layer_t *l, void* user) {
