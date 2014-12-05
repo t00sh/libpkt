@@ -81,6 +81,6 @@ void packet_foreach_layer(packet_t *p, void (*callback)(layer_t*, void* user), v
  * \param layer_type The first layer
  * \return the packet or NULL if an error occured
  */
-packet_t* packet_parse(u8* data, u32 size, int layer_type);
+packet_t* packet_parse(const u8* data, u32 size, int layer_type);
 
 #endif /* DEF_PACKET_H */

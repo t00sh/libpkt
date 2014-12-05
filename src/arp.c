@@ -36,7 +36,7 @@
 #define ARP_HLEN(h) ((u32)(ARP_MIN_HLEN + 2*h->hln + 2*h->pln))
 #define ARP_IS_VALID_LEN(len) (len >= ARP_MIN_HLEN)
 
-int arp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int arp_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
   arp_hdr *arp;
 
   (void)p;

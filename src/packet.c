@@ -94,7 +94,7 @@ void packet_foreach_layer(packet_t *p, void (*callback)(layer_t*, void* user), v
   }
 }
 
-packet_t* packet_parse(u8* data, u32 size, int layer_type) {
+packet_t* packet_parse(const u8* data, u32 size, int layer_type) {
   packet_t *p;
 
   if(layer_type < 0 || layer_type >= LAYER_MAX)

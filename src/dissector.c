@@ -26,9 +26,9 @@
 #include "dissector.h"
 #include <stdlib.h>
 
-int raw_parse(layer_t **layer, u8 *data, u32 size);
+int raw_parse(layer_t **layer, const u8 *data, u32 size);
 
-void dissector_run(packet_t *p, dissector_t *dis, layer_t *cur_layer, u8* data, u32 size) {
+void dissector_run(packet_t *p, dissector_t *dis, layer_t *cur_layer, const u8* data, u32 size) {
   int i;
 
   if(size > 0) {

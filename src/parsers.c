@@ -28,21 +28,24 @@
 #include <stdlib.h>
 
 
-int ether_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int ipv4_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int tcp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int udp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int icmp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int arp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int dns_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int ipv6_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int raw_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int ipv6_parse_hbh_ext(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int ipv6_parse_frag_ext(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int ipv6_parse_route_ext(packet_t *p, layer_t **layer, u8 *data, u32 size);
-int tls_parse(packet_t *p, layer_t **layer, u8 *data, u32 size);
+int ether_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int ipv4_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int tcp_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int udp_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int icmp_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int arp_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int dns_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int ipv6_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int raw_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int ipv6_parse_hbh_ext(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int ipv6_parse_frag_ext(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+int ipv6_parse_route_ext(packet_t *p, layer_t **layer, const u8 *data, u32 size);
 
-int (*layer_parsers[])(packet_t *p, layer_t**, u8*, u32) = {
+#ifdef ENABLE_TLS
+int tls_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size);
+#endif
+
+int (*layer_parsers[])(packet_t *p, layer_t**, const u8*, u32) = {
   ether_parse,           /* LAYER_ETHER           */
   ipv4_parse,            /* LAYER_IPV4            */
   tcp_parse,             /* LAYER_TCP             */
@@ -55,7 +58,9 @@ int (*layer_parsers[])(packet_t *p, layer_t**, u8*, u32) = {
   ipv6_parse_hbh_ext,    /* LAYER_IPV6_HBH_EXT    */
   ipv6_parse_frag_ext,   /* LAYER_IPV6_FRAG_EXT   */
   ipv6_parse_route_ext,  /* LAYER_IPV6_ROUTE_EXT  */
+#ifdef ENABLE_TLS
   tls_parse,             /* LAYER_TLS             */
+#endif
   NULL                   /* LAYER_MAX             */
 };
 
@@ -124,11 +129,14 @@ dissector_t udp_dissectors[] = {
 /*************************************/
 /* ********** LAYER_TCP  *********** */
 /*************************************/
-
+#ifdef ENABLE_TLS
 int tcp_is_tls(layer_t *l);
+#endif
 
 dissector_t tcp_dissectors[] = {
+#ifdef ENABLE_TLS
   { tcp_is_tls, tls_parse },
+#endif
   { NULL, NULL }
 };
 
@@ -140,6 +148,8 @@ dissector_t icmp_dissectors[] = {
   { NULL, NULL }
 };
 
+
+#ifdef ENABLE_TLS
 /*************************************/
 /* ********** LAYER_TLS  *********** */
 /*************************************/
@@ -150,3 +160,4 @@ dissector_t tls_dissectors[] = {
   { tls_is_tls, tls_parse },
   { NULL, NULL }
 };
+#endif

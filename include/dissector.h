@@ -35,9 +35,9 @@
  */
 typedef struct dissector {
   int (*is_proto)(layer_t*);                      /**< Check protocol */
-  int (*parser)(packet_t*, layer_t**, u8*, u32);  /**< Parser to run if protocol match */
+  int (*parser)(packet_t*, layer_t**, const u8*, u32);  /**< Parser to run if protocol match */
 }dissector_t;
 
-void dissector_run(packet_t *p, dissector_t *dis, layer_t *cur_layer, u8* data, u32 size);
+void dissector_run(packet_t *p, dissector_t *dis, layer_t *cur_layer, const u8* data, u32 size);
 
 #endif /* DEF_DISSECTOR_H */

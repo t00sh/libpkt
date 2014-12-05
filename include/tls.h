@@ -32,6 +32,16 @@
  * \brief Implement LAYER_TLS
  */
 
+
+/*! TLS content types */
+typedef enum tls_ctype {
+  TLS_CTYPE_CHANGECIPHERSPECS=20, /**< Change cipher */
+  TLS_CTYPE_ALERT=21,             /**< TLS alert */
+  TLS_CTYPE_HANDSHAKE=22,         /**< TLS handshake */
+  TLS_CTYPE_DATA=23,              /**< TLS data */
+  TLS_CTYPE_CONTINUOUS_DATA=256,  /**< Not in RFC, used to specify SSL traffic with no header */
+}tls_ctype;
+
 /*! tls version
  * \private
  */
@@ -57,42 +67,44 @@ typedef struct tls_hdr {
   u16 length;
 }__attribute__((__packed__)) tls_hdr;
 
-/*! TLS object types */
-typedef enum tls_types {
-  TLS_TYPE_DATA,   /**< Continuous data */
-  TLS_TYPE_HEADER, /**< Contain header */
-}tls_types;
-
 /*! TLS continuous data
  * \private
  */
-typedef struct tls_data {
+typedef struct tls_continuous_data {
   u8 *bytes;
   u32 len;
-}tls_data;
+}tls_continuous_data;
 
 /*! TLS structure
  * \private
  */
 typedef struct tls_obj {
-  tls_types type;
+  tls_ctype type;
   void *obj;
 }tls_obj;
 
-/*! TLS content types */
-typedef enum tls_ctype {
-  TLS_CTYPE_CHANGECIPHERSPECS=20, /**< Change cipher */
-  TLS_CTYPE_ALERT=21,             /**< TLS alert */
-  TLS_CTYPE_HANDSHAKE=22,         /**< TLS handshake */
-  TLS_CTYPE_DATA=23               /**< TLS data */
-}tls_ctype;
+
+/*! tls data header
+ * \private
+ */
+
+typedef struct tls_data {
+  tls_hdr *hdr;
+  u8 *bytes;
+  u32 len;
+}tls_data;
+
+typedef struct tls_handshake_hdr {
+  u8 msg_type;
+  u8 length[3];
+}__attribute__((__packed__)) tls_handshake_hdr;
 
 /*! tls handshake header
  * \private
  */
 typedef struct tls_handshake {
-  u8 msg_type;
-  u8 length[3];
+  tls_hdr *hdr;
+  tls_handshake_hdr *handshake_hdr;
 
   union {
     struct {
@@ -135,5 +147,8 @@ int tls_get_type(layer_t *l, int *type);
 
 /*! Get TLS data length */
 int tls_get_length(layer_t *l, u16 *length);
+
+/*! Get the TLS header */
+int tls_get_hdr(layer_t *l, tls_hdr **hdr);
 
 #endif /* DEF_TLS_H */

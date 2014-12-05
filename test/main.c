@@ -149,6 +149,7 @@ void do_dns(layer_t *l) {
 	 id);
 }
 
+#ifdef ENABLE_TLS
 void do_tls(layer_t *l) {
   const char *ctype;
   u8 ver_maj;
@@ -158,7 +159,8 @@ void do_tls(layer_t *l) {
 
   tls_get_type(l, &type);
 
-  if(type == TLS_TYPE_HEADER) {
+  if(type == TLS_CTYPE_HANDSHAKE ||
+     type == TLS_CTYPE_DATA) {
     tls_get_ctypeStr(l, &ctype);
     tls_get_versionmaj(l, &ver_maj);
     tls_get_versionmin(l, &ver_min);
@@ -171,6 +173,7 @@ void do_tls(layer_t *l) {
   }
 }
 
+#endif
 void print_layer(layer_t *l, void* user) {
   (void)user;
 
@@ -198,8 +201,11 @@ void print_layer(layer_t *l, void* user) {
     do_ipv6_frag_ext(l);
   else if(l->type == LAYER_IPV6_ROUTE_EXT)
     do_ipv6_route_ext(l);
+#ifdef ENABLE_TLS
   else if(l->type == LAYER_TLS)
     do_tls(l);
+#endif
+
 }
 
 void handle_pkt(u_char *args, const struct pcap_pkthdr *header, const u_char *raw) {

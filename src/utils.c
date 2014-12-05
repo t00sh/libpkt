@@ -24,25 +24,41 @@
 #include "types.h"
 
 inline u16 ntohs(u16 n) {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   return ((((u16)(n) & 0xFF)) << 8) | (((u16)(n) & 0xFF00) >> 8);
-#elif __BYTE_ORDER == __BIG_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   return n;
 #else
-# error	"Please fix <bits/endian.h>"
+# error	"Please fix endianness"
 #endif
 }
 
 
 inline u32 ntohl(u32 n) {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   return (((((u32)(n) & 0xFF)) << 24) | \
 	  ((((u32)(n) & 0xFF00)) << 8) | \
 	  ((((u32)(n) & 0xFF0000)) >> 8) | \
 	  ((((u32)(n) & 0xFF000000)) >> 24));
-#elif __BYTE_ORDER == __BIG_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   return n;
 #else
-# error	"Please fix <bits/endian.h>"
+#error	"Please fix endianness"
+#endif
+}
+
+inline u32 ntoh24(u8 n[3]) {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  return					\
+    (((u32)(n[0])) |				\
+     ((u32)(n[1]) << 8) |			\
+     ((u32)(n[2]) << 16));
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  return					\
+    (((u32)(n[2])) |				\
+     ((u32)(n[1]) << 8) |			\
+     ((u32)(n[0]) << 16));;
+#else
+#error	"Please fix endianness"
 #endif
 }

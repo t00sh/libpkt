@@ -44,7 +44,7 @@ int udp_is_dns(layer_t *l) {
   return 0;
 }
 
-int udp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int udp_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
     udp_hdr *udp;
 
   if(!UDP_IS_VALID_LEN(size))

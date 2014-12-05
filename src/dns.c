@@ -35,7 +35,7 @@
 #define DNS_MIN_HLEN 12UL
 #define DNS_IS_VALID_LEN(len) (len >= DNS_MIN_HLEN)
 
-int dns_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int dns_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
   dns_hdr *dns;
 
   (void)p;

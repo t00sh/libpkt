@@ -38,4 +38,7 @@ u16 ntohs(u16 n);
 /*! Take a 32 bits integer in network order and return the integer in host order */
 u32 ntohl(u32 n);
 
+/*! Take a pointer to a 3 bytes values which represent 24 bits integer in network order, and return a 24 bits integer in host order (the top 8 bits of the u32 integer returned arn't used) */
+inline u32 ntoh24(u8 n[3]);
+
 #endif

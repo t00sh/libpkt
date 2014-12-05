@@ -45,11 +45,13 @@ enum layer_types {
   LAYER_IPV6_HBH_EXT,    /**< IPv6 hbh extension header */
   LAYER_IPV6_FRAG_EXT,   /**< IPv6 frag extension header */
   LAYER_IPV6_ROUTE_EXT,  /**< IPv6 route extension header */
+#ifdef ENABLE_TLS
   LAYER_TLS,             /**< TLS/SSL */
+#endif
   LAYER_MAX              /**< layer max (unused) */
 };
 
-extern int (*layer_parsers[])(packet_t *p, layer_t**, u8*, u32);
+extern int (*layer_parsers[])(packet_t *p, layer_t**, const u8*, u32);
 extern dissector_t ether_dissectors[];
 extern dissector_t ipv4_dissectors[];
 extern dissector_t udp_dissectors[];

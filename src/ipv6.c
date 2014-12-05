@@ -96,7 +96,7 @@ int ipv6_is_frag_ext(layer_t *l) {
   return 0;
 }
 
-int ipv6_parse_hbh_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int ipv6_parse_hbh_ext(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
   ipv6_hbh_hdr *hbh;
 
   if(size < sizeof(ipv6_hbh_hdr))
@@ -124,7 +124,7 @@ int ipv6_parse_hbh_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
   return 1;
 }
 
-int ipv6_parse_frag_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int ipv6_parse_frag_ext(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
   ipv6_frag_hdr *frag;
 
   if(size < sizeof(ipv6_frag_hdr))
@@ -147,7 +147,7 @@ int ipv6_parse_frag_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
   return 1;
 }
 
-int ipv6_parse_route_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int ipv6_parse_route_ext(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
   ipv6_route_hdr *route;
 
   if(size < sizeof(ipv6_route_hdr))
@@ -175,7 +175,7 @@ int ipv6_parse_route_ext(packet_t *p, layer_t **layer, u8 *data, u32 size) {
   return 1;
 }
 
-int ipv6_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int ipv6_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
   ipv6_hdr *ipv6;
 
   if(!IPV6_IS_VALID_LEN(size))

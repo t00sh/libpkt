@@ -61,7 +61,7 @@ int ipv4_is_icmp(layer_t *l) {
   return 0;
 }
 
-int ipv4_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int ipv4_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
   ipv4_hdr *ipv4;
 
   if(!IPV4_IS_VALID_LEN(size))

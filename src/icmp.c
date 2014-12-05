@@ -36,7 +36,7 @@
 #define ICMP_MIN_HLEN 8UL
 #define ICMP_IS_VALID_LEN(len) (len >= ICMP_MIN_HLEN)
 
-int icmp_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
+int icmp_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
   icmp_hdr *icmp;
 
   if(!ICMP_IS_VALID_LEN(size))

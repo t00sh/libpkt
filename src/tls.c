@@ -21,6 +21,8 @@
 /************************************************************************/
 
 
+#ifdef ENABLE_TLS
+
 #include "packet.h"
 #include "types.h"
 #include "dissector.h"
@@ -38,9 +40,9 @@
 #include <assert.h>
 
 #define TLS_MIN_HLEN 5UL
+#define TLS_MIN_HANDSHAKE_LEN (sizeof(tls_hdr) + sizeof(tls_handshake_hdr))
 #define TLS_IS_VALID_LEN(len) (len >= TLS_MIN_HLEN)
 #define TLS_LEN(h) (ntohs(h->length))
-
 
 static void tls_state_add(packet_t *p, u32 len);
 static int tls_state_update(packet_t *p, u32 *tls_length);
@@ -53,48 +55,99 @@ int tls_is_tls(layer_t *l) {
 static void tls_obj_free(void *obj) {
   tls_obj *tls = obj;
 
-  if(tls->type == TLS_TYPE_DATA)
+  if(tls) {
     free(tls->obj);
-  free(tls);
+    free(tls);
+  }
 }
 
 static tls_obj* tls_obj_new(void) {
   return calloc(1, sizeof(tls_obj));
 }
 
-static tls_data* tls_data_new(void) {
-  return calloc(1, sizeof(tls_data));
+static tls_continuous_data* tls_continuous_data_new(void) {
+  return calloc(1, sizeof(tls_continuous_data));
 }
 
-int tls_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
-  tls_obj *tls;
+static tls_handshake* tls_handshake_new(void) {
+  return calloc(1, sizeof(tls_handshake));
+}
+
+static int tls_parse_handshake(tls_obj *tls, const u8 *data, u32 size) {
+  tls_handshake *handshake;
+
+  if(size < TLS_MIN_HANDSHAKE_LEN)
+    return 0;
+
+  if((handshake = tls_handshake_new()) == NULL)
+    return 0;
+
+  handshake->hdr = (tls_hdr*)data;
+  handshake->handshake_hdr = (tls_handshake_hdr*)(data + sizeof(tls_hdr));
+
+  tls->type = TLS_CTYPE_HANDSHAKE;
+  tls->obj = handshake;
+
+  return 1;
+}
+
+static int tls_parse_header(tls_obj *tls, const u8 *data, u32 size) {
   tls_hdr *hdr;
-  tls_data *tls_data;
+
+  if(size < TLS_MIN_HLEN)
+    return 0;
+
+  hdr = (tls_hdr*)data;
+
+  if(hdr->content_type == TLS_CTYPE_HANDSHAKE) {
+    return tls_parse_handshake(tls, data, size);
+  }
+  return 1;
+}
+
+static int tls_parse_continuous_data(tls_obj *tls, const u8 *data, u32 size) {
+  tls_continuous_data *tls_data;
+
+  if((tls_data = tls_continuous_data_new()) == NULL)
+    return 0;
+
+  tls->type = TLS_CTYPE_CONTINUOUS_DATA;
+  tls_data->len = size;
+  tls_data->bytes = data;
+  tls->obj = tls_data;
+
+  return 1;
+}
+
+int tls_parse(packet_t *p, layer_t **layer, const u8 *data, u32 size) {
+  tls_obj *tls = NULL;
+  tls_hdr *hdr = NULL;
   u32 tls_size;
 
   if((*layer = layer_new()) == NULL)
-    return 0;
+    goto err;
 
-  if((tls = tls_obj_new()) == NULL) {
-    layer_free(layer);
-    return 0;
-  }
+  if((tls = tls_obj_new()) == NULL)
+    goto err;
+
+  (*layer)->type = LAYER_TLS;
+  (*layer)->object = tls;
+  (*layer)->destructor = tls_obj_free;
 
   tls_size = size;
 
   if(tls_state_update(p, &tls_size)) {
-    tls->type = TLS_TYPE_DATA;
-    tls_data = tls_data_new();
-    tls_data->len = tls_size;
-    tls_data->bytes = data;
-    tls->obj = tls_data;
-
+    if(!tls_parse_continuous_data(tls, data, tls_size))
+      goto err;
     data += tls_size;
     size -= tls_size;
   } else {
-    tls->type = TLS_TYPE_HEADER;
-    hdr = (tls_hdr*)data;
-    tls->obj = hdr;
+
+    if(!tls_parse_header(tls, data, size))
+      goto err;
+
+    if(!tls_get_hdr(*layer, &hdr))
+      goto err;
 
     if(TLS_LEN(hdr) > size - TLS_MIN_HLEN) {
       tls_state_add(p, TLS_LEN(hdr) - (size - TLS_MIN_HLEN));
@@ -105,17 +158,22 @@ int tls_parse(packet_t *p, layer_t **layer, u8 *data, u32 size) {
     }
   }
 
-  (*layer)->type = LAYER_TLS;
-  (*layer)->object = tls;
-  (*layer)->destructor = tls_obj_free;
-
   dissector_run(p,
 		tls_dissectors,
 		*layer,
 		data,
 		size);
 
+
   return 1;
+
+ err:
+  if(layer)
+    layer_free(layer);
+  if(tls)
+    tls_obj_free(tls);
+
+  return 0;
 }
 
 int tls_get_type(layer_t *l, int *type) {
@@ -131,37 +189,47 @@ int tls_get_type(layer_t *l, int *type) {
   return 1;
 }
 
-int tls_get_ctype(layer_t *l, u8 *ctype) {
+int tls_get_hdr(layer_t *l, tls_hdr **hdr) {
   tls_obj *tls;
+
+  if(l->type != LAYER_TLS)
+    return 0;
+
+  tls = l->object;
+
+  if(tls->type == TLS_CTYPE_HANDSHAKE)
+    *hdr = ((tls_handshake*)(tls->obj))->hdr;
+  else if(tls->type == TLS_CTYPE_DATA)
+    *hdr = ((tls_data*)(tls->obj))->hdr;
+  else
+    return 0;
+
+  return 1;
+}
+
+int tls_get_ctype(layer_t *l, u8 *ctype) {
   tls_hdr *hdr;
 
   if(l->type !=  LAYER_TLS)
     return 0;
 
-  tls = l->object;
-
-  if(tls->type != TLS_TYPE_HEADER)
+  if(!tls_get_hdr(l, &hdr))
     return 0;
 
-  hdr = tls->obj;
   *ctype = hdr->content_type;
 
   return 1;
 }
 
 int tls_get_length(layer_t *l, u16 *length) {
-  tls_obj *tls;
   tls_hdr *hdr;
 
   if(l->type !=  LAYER_TLS)
     return 0;
 
-  tls = l->object;
-
-  if(tls->type != TLS_TYPE_HEADER)
+  if(!tls_get_hdr(l, &hdr))
     return 0;
 
-  hdr = tls->obj;
   *length = ntohs(hdr->length);
 
   return 1;
@@ -169,16 +237,13 @@ int tls_get_length(layer_t *l, u16 *length) {
 
 int tls_get_versionmaj(layer_t *l, u8 *ver) {
   tls_hdr *hdr;
-  tls_obj *tls;
 
   if(l->type !=  LAYER_TLS)
     return 0;
 
-  tls = l->object;
-  if(tls->type != TLS_TYPE_HEADER)
+  if(!tls_get_hdr(l, &hdr))
     return 0;
 
-  hdr = tls->obj;
   *ver = hdr->version.major;
 
   return 1;
@@ -186,18 +251,13 @@ int tls_get_versionmaj(layer_t *l, u8 *ver) {
 
 int tls_get_versionmin(layer_t *l, u8 *ver) {
   tls_hdr *hdr;
-  tls_obj *tls;
 
   if(l->type !=  LAYER_TLS)
     return 0;
 
-
-  tls = l->object;
-
-  if(tls->type != TLS_TYPE_HEADER)
+  if(!tls_get_hdr(l, &hdr))
     return 0;
 
-  hdr = tls->obj;
   *ver = hdr->version.minor;
 
   return 1;
@@ -205,17 +265,12 @@ int tls_get_versionmin(layer_t *l, u8 *ver) {
 
 int tls_get_ctypeStr(layer_t *l, const char **ctype) {
   tls_hdr *hdr;
-  tls_obj *tls;
 
   if(l->type !=  LAYER_TLS)
     return 0;
 
-  tls = l->object;
-
-  if(tls->type != TLS_TYPE_HEADER)
+  if(!tls_get_hdr(l, &hdr))
     return 0;
-
-  hdr = tls->obj;
 
   switch(hdr->content_type) {
 
@@ -414,3 +469,5 @@ static void tls_state_add(packet_t *p, u32 len) {
   state->len_left = len;
   tls_state_insert(state);
 }
+
+#endif /* ENABLE_TLS */
