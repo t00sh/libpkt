@@ -112,7 +112,7 @@ int ipv4_get_protocol(layer_t *l, u8 *proto) {
   return 1;
 }
 
-static void ipv4_addr_to_str(ipv4addr_t *addr, char str[IPV4_ADDR_STR_LEN]) {
+void ipv4_addr_to_str(ipv4addr_t *addr, char str[IPV4_ADDR_STR_LEN]) {
   sprintf(str, "%d.%d.%d.%d",
 	  addr->bytes[0],
 	  addr->bytes[1],

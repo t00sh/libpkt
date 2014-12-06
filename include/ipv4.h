@@ -90,4 +90,6 @@ int ipv4_get_options(layer_t *l, u8** options, u32 *options_len);
 int ipv4_get_daddr(layer_t *l, ipv4addr_t *addr);
 int ipv4_get_saddr(layer_t *l, ipv4addr_t *addr);
 
+void ipv4_addr_to_str(ipv4addr_t *addr, char str[IPV4_ADDR_STR_LEN]);
+
 #endif /* DEF_IPV4_H */
