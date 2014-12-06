@@ -47,7 +47,7 @@ typedef struct layer {
  * A Packet structure
  */
 typedef struct packet {
-  u8* raw;              /**< Raw packet */
+  const u8* raw;        /**< Raw packet */
   u32 size;             /**< Raw packet size */
   layer_t *layers;      /**< List of layers */
 }packet_t;

@@ -102,6 +102,9 @@ packet_t* packet_parse(const u8* data, u32 size, int layer_type) {
   if((p = packet_new()) == NULL)
     return NULL;
 
+  p->size = size;
+  p->raw  = data;
+
   if(!layer_parsers[layer_type](p, &p->layers, data, size)) {
     packet_free(&p);
     return NULL;
